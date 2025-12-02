@@ -1,83 +1,87 @@
-services:
-  frontend:
-    build: ./frontend
-    image: sample-frontend
-    ports:
-      - "8080:80"
-    depends_on:
-      - backend
-    networks:
-      - app-network
+├── README
+├── backend
+│   ├── Dockerfile
+│   ├── index.js
+│   └── package.json
+├── docker-compose.yml
+└── frontend
+    ├── Dockerfile
+    └── index.html
 
 Frontend service: Builds from frontend/ folder.
 Exposes port 8080 on host → 80 in container.
 depends_on: waits for backend to start.
 Connected to custom network app-network.
-
-  backend:
-    build: ./backend
-    image: sample-backend
-    ports:
-      - "5000:5000"
-    environment:
-      MONGO_URL: mongodb://mongodb:27017/appdb
-    depends_on:
-      - mongodb
-    networks:
-      - app-network
-
+        services:
+          frontend:
+            build: ./frontend
+            image: sample-frontend
+            ports:
+              - "8080:80"
+            depends_on:
+              - backend
+            networks:
+              - app-network
 
 Backend service: Node.js API.
 Port 5000 exposed.
 MONGO_URL points to the MongoDB service in the same network.
-Depends on MongoDB.
+Depends on MongoDB.           
 
-
-  mongodb:
-    image: mongo:6
-    container_name: mongodb
-    volumes:
-      - mongo_data:/data/db
-    networks:
-      - app-network
+        backend:
+          build: ./backend
+          image: sample-backend
+          ports:
+            - "5000:5000"
+          environment:
+            MONGO_URL: mongodb://mongodb:27017/appdb
+          depends_on:
+            - mongodb
+          networks:
+            - app-network
 
 MongoDB service.
 Data persisted in Docker named volume mongo_data.
 Connected to app-network.
-
-networks:
-  app-network:
-    driver: bridge
+        mongodb:
+          image: mongo:6
+          container_name: mongodb
+          volumes:
+            - mongo_data:/data/db
+          networks:
+            - app-network
 
 Custom Docker bridge network for internal DNS-based communication.
 Containers can refer to each other by service name (backend, mongodb).
-
-volumes:
-  mongo_data:
+          networks:
+            app-network:
+              driver: bridge
 
 Named volume for persistent MongoDB storage.
-
-index.html:
-<h1>Frontend Running</h1>
-<p>Backend URL: http://backend:5000/api/health</p>
+        volumes:
+          mongo_data:
 
 Simple frontend page
 Shows how frontend can call backend using service name backend (internal Docker DNS)
-
-index.js:
-
-const express = require("express");
-const app = express();
-
-app.get("/api/health", (req, res) => {
-  res.send("Backend is healthy");
-});
-
-app.listen(5000, () => {
-  console.log("Backend running on port 5000");
-});
-
+        index.html:
+        <h1>Frontend Running</h1>
+        <p>Backend URL: http://backend:5000/api/health</p>
 
 Simple Express API
 /api/health endpoint returns "Backend is healthy"
 Listens on port 5000 (exposed in Dockerfile)
+
+    index.js:
+        const express = require("express");
+        const app = express();
+        
+        app.get("/api/health", (req, res) => {
+          res.send("Backend is healthy");
+        });
+        
+        app.listen(5000, () => {
+          console.log("Backend running on port 5000");
+        });
+
+
+
